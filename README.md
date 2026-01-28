@@ -28,7 +28,3 @@ To run the examples:
 2. Compile `main.c` linked with Raylib.
 3. Ensure the `.vs` and `.fs` shader files are in the same directory as the executable or update the load path in the code.
 
-<img width="1920" height="1080" alt="Fig_8" src="https://github.com/user-attachments/assets/498125e1-c62b-4e72-b2fe-f2a98ce4d072" />
-<img width="1920" height="1080" alt="Fig_6" src="https://github.com/user-attachments/assets/382bfa0d-9a9d-4bb1-95f4-0e8c14730313" />
-<img width="1920" height="1080" alt="Fig_2" src="https://github.com/user-attachments/assets/af3fca2a-6e51-4ecb-9953-ca1e9ee4672e" />
-
