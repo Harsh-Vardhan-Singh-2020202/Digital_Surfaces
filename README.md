@@ -4,13 +4,28 @@ This repository contains the source code and shaders for the **Digital Surfaces*
 
 ## The Series
 You can follow the full deep-dive articles here:
-- [Part 1: The Evolution of Digital Appearance](https://medium.com/@harvarsin/digital-surfaces-a-deep-dive-into-physically-based-reflectance-part-1-5a4191d66d32)
-- Part 2: Geometry, Interpolation, and Artifacts (Coming Soon)
+- [**Part 1: The Evolution of Digital Appearance**](https://medium.com/@harvarsin/digital-surfaces-a-deep-dive-into-physically-based-reflectance-part-1-5a4191d66d32) 
+  An overview of the rendering equation and the transition from empirical hacks to physical simulation.
+- **Part 2: Geometry, Interpolation, and Artifacts** (Coming Soon)
+  Analyzing the "where" of the pipeline: Flat, Gouraud, and Phong shading plus the hardware logic of vertex splitting.
+- **Part 3: The Indirect World** (Coming Soon)
+  Moving beyond black shadows by implementing simple Ambient constants and modern Image-Based Lighting (IBL).
+- **Part 4: The Physics of Matte** (Coming Soon)
+  A deep dive into diffuse reflectance models from the baseline of Lambert to the artistic precision of Disney’s Burley.
+- **Part 5: Chasing the Shine** (Coming Soon)
+  Exploring specular reflectance, microfacet theory, and why GGX became the industry standard for realism.
+- **Part 6: Beyond the Surface** (Coming Soon)
+  Simulating complexity with multi-layered material stacks using Clearcoat and Sheen lobes.
+- **Part 7: The Unified Framework** (Coming Soon)
+  Bringing it all together into a modern PBR pipeline and the mathematical umbrella of the BSDF.
 
 ## Project Structure
 The code is organized by the part of the series it represents:
 - `/polygon_shading_methods`: Implementations of Flat, Gouraud, and Phong shading (Part 2).
-- `/ambient_lighting`: Image-Based Lighting (IBL) and environment mapping (Part 3 - Upcoming).
+- `/lighting_methods`: Ambient (Part 3 - Upcoming).
+- `/lighting_methods`: Diffuse (Part 4 - Upcoming).
+- `/lighting_methods`: Specular (Part 5 - Upcoming).
+- `/multi_layer_reflectance`: Clearcoat & Sheen (Part 6 - Upcoming).
 
 ## Getting Started
 
