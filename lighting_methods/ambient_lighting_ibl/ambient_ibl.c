@@ -6,9 +6,12 @@
 -> Press left mouse button to interact with the GUI
 */
 
+#define RAYGUI_IMPLEMENTATION
+
 #include <stdio.h>
 #include "raylib.h"
 #include "raymath.h"
+#include "raygui.h"
 #include "rlgl.h"
 
 int main()
@@ -17,6 +20,9 @@ int main()
     const int screenWidth = 800;
     const int screenHeight = 800;
 
+    // Resizable window
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+    
     // Resizable window
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 
@@ -32,12 +38,12 @@ int main()
     camera.projection = CAMERA_PERSPECTIVE;
 
     // Variables for camera orbiting
-    float yaw = 1.0f;
-    float pitch = 0.5f;
+    float yaw = 0.0f;
+    float pitch = 0.0f;
     float radius = 2.5f;
 
     // Load the panoramic environment map
-    Image img = LoadImage("resources/sky1_2k_panaroma.jpg");
+    Image img = LoadImage("resources/sky1_2k.jpg");
     Texture2D panorama = LoadTextureFromImage(img);
     UnloadImage(img);
 
@@ -45,11 +51,11 @@ int main()
     Mesh cube = GenMeshCube(100.0f, 100.0f, 100.0f);
     Model skybox = LoadModelFromMesh(cube);
 
-    // Load skybox shader and set panorama texture
+    // Load skybox shader and set cube map texture
     skybox.materials[0].shader = LoadShader("resources/skybox.vs", "resources/skybox.fs");
     
-    // The shader converts the panorama to a skybox view
-    skybox.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = panorama;
+    // The shader converts the cubemap to a skybox view
+    skybox.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = cubemap;
 
     // Generate a torus mesh
     Mesh mesh = GenMeshTorus(0.4f, 1.0f, 24, 48);
@@ -59,34 +65,38 @@ int main()
     torus.transform = MatrixRotateX(DEG2RAD * 90.0f);
 
     // Load and assign the shaders
-    Shader shader = LoadShader("polygon_shading_methods/phong_shading/shading_phong.vs", "polygon_shading_methods/phong_shading/shading_phong.fs");
+    Shader shader = LoadShader("lighting_methods/ambient_lighting_ibl/ambient_ibl.vs", "lighting_methods/ambient_lighting_ibl/ambient_ibl.fs");
     torus.materials[0].shader = shader;
 
     // Assign the uniforms
-    int lightPosLoc    = GetShaderLocation(shader, "lightPos");
     int lightColorLoc  = GetShaderLocation(shader, "lightColor");
     int objectColorLoc = GetShaderLocation(shader, "objectColor");
-    int viewPosLoc     = GetShaderLocation(shader, "viewPos");
+
+    int roughnessValueLoc = GetShaderLocation(shader, "roughnessValue");
+    int metallicValueLoc  = GetShaderLocation(shader, "metallicValue");
 
     int envLoc = GetShaderLocation(skybox.materials[0].shader, "environmentMap");
 
     // Set static uniform values
-    Vector3 lightPos = { 5.0f, 5.0f, 5.0f };
     Vector3 lightColor = { 1.0f, 1.0f, 1.0f };
     Vector3 objectColor = { 0.5f, 0.0f, 0.0f };
 
     // Update shader uniform values
-    
-    SetShaderValue(shader, lightPosLoc, &lightPos, SHADER_UNIFORM_VEC3);                // Light position
+
     SetShaderValue(shader, lightColorLoc, &lightColor, SHADER_UNIFORM_VEC3);            // Light color
     SetShaderValue(shader, objectColorLoc, &objectColor, SHADER_UNIFORM_VEC3);          // Object color
 
-    float cameraPos[3] = { camera.position.x, camera.position.y, camera.position.z };
-    SetShaderValue(shader, viewPosLoc, cameraPos, SHADER_UNIFORM_VEC3);                 // View position
+    float roughnessSliderValue = 0.5f;
+    float roughnessValue = roughnessSliderValue;
+    SetShaderValue(shader, roughnessValueLoc, &roughnessValue, SHADER_UNIFORM_FLOAT);   // Roughness
+
+    float metallicSliderValue = 0.5f;
+    float metallicValue = metallicSliderValue;
+    SetShaderValue(shader, metallicValueLoc, &metallicValue, SHADER_UNIFORM_FLOAT);     // Metallic
 
     // Passing the environment map to the skybox shader
     SetShaderValueTexture(skybox.materials[0].shader, envLoc, panorama);
-    
+
     // Lock the frames rate
     SetTargetFPS(60);
 
@@ -134,12 +144,20 @@ int main()
         // Start rendering a new frame
         BeginDrawing();
 
+        // Update roughness from slider
+        roughnessValue = roughnessSliderValue;
+        SetShaderValue(shader, roughnessValueLoc, &roughnessValue, SHADER_UNIFORM_FLOAT);
+
+        // Update metallic from slider
+        metallicValue = metallicSliderValue;
+        SetShaderValue(shader, metallicValueLoc, &metallicValue, SHADER_UNIFORM_FLOAT);
+
         // Clear the screen with an off-white background
         ClearBackground((Color){200, 200, 200, 255});
 
         // Switch to 3D rendering using the given camera
         BeginMode3D(camera);
-
+        
         // Draw skybox (disable depth writing so it's always in background)
         rlDisableBackfaceCulling();
         rlDisableDepthMask();
@@ -154,8 +172,16 @@ int main()
         EndMode3D();
 
         // Add information text
-        DrawText("Phong Shading", 10, 10, 20, BLACK);
+        DrawText("Ambient Lighting - IBL", 10, 10, 20, BLACK);
 
+        // Draw roughness slider
+        DrawText("Roughness", 10, 40, 20, BLACK);
+        GuiSlider((Rectangle){ 130, 40, 200, 20 }, "", TextFormat("%.2f", roughnessSliderValue), &roughnessSliderValue, 0.0f, 1.0f);
+
+        // Draw metallic slider
+        DrawText("Metallic", 10, 70, 20, BLACK);
+        GuiSlider((Rectangle){ 130, 70, 200, 20 }, "", TextFormat("%.2f", metallicSliderValue), &metallicSliderValue, 0.0f, 1.0f);
+        
         // Finish the frame and present it on screen
         EndDrawing();
     }

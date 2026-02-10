@@ -33,7 +33,7 @@ int main()
     float radius = 2.5f;
 
     // Load the panoramic environment map
-    Image img = LoadImage("resources/sky1_2k.jpg");
+    Image img = LoadImage("resources/sky1_2k_panaroma.jpg");
     Texture2D panorama = LoadTextureFromImage(img);
     UnloadImage(img);
 

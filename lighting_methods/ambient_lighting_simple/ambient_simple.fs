@@ -4,7 +4,7 @@
 in vec3 fragNormal;
 in vec3 fragPosition;
 
-// Uniforms (set from ambient.c)
+// Uniforms (set from ambient_simple.c)
 uniform vec3 lightColor;
 uniform vec3 objectColor;
 

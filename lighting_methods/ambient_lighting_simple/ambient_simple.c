@@ -1,5 +1,6 @@
 /*
 -> Press F5 to run
+-> Press F11 to preview fullscreen borderless
 -> Press middle mouse button to move the camera
 -> Use mouse wheel to zoom in and out
 -> Press left mouse button to interact with the GUI
@@ -15,6 +16,9 @@ int main()
     // Set window dimensions
     const int screenWidth = 800;
     const int screenHeight = 800;
+
+    // Resizable window
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 
     // Initialize the window
     InitWindow(screenWidth, screenHeight, "Shading Lab");
@@ -33,7 +37,7 @@ int main()
     float radius = 2.5f;
 
     // Load the panoramic environment map
-    Image img = LoadImage("resources/sky1_2k.jpg");
+    Image img = LoadImage("resources/sky1_2k_panaroma.jpg");
     Texture2D panorama = LoadTextureFromImage(img);
     UnloadImage(img);
 
@@ -55,7 +59,7 @@ int main()
     torus.transform = MatrixRotateX(DEG2RAD * 90.0f);
 
     // Load and assign the shaders
-    Shader shader = LoadShader("lighting_methods/ambient_lighting/ambient.vs", "lighting_methods/ambient_lighting/ambient.fs");
+    Shader shader = LoadShader("lighting_methods/ambient_lighting_simple/ambient_simple.vs", "lighting_methods/ambient_lighting_simple/ambient_simple.fs");
     torus.materials[0].shader = shader;
 
     // Assign the uniforms
@@ -82,6 +86,12 @@ int main()
     // Main render loop
     while (!WindowShouldClose())
     {
+        // Fullscreen borderless
+        if (IsKeyPressed(KEY_F11))
+        {
+            ToggleBorderlessWindowed();
+        }
+
         // Camera orbit controls
         if (IsMouseButtonDown(MOUSE_MIDDLE_BUTTON))
         {
@@ -137,7 +147,7 @@ int main()
         EndMode3D();
 
         // Add information text
-        DrawText("Ambient Lighting", 10, 10, 20, BLACK);
+        DrawText("Ambient Lighting - Simple", 10, 10, 20, BLACK);
         
         // Finish the frame and present it on screen
         EndDrawing();
