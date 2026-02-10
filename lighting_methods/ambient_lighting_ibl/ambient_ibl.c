@@ -45,6 +45,8 @@ int main()
     // Load the panoramic environment map
     Image img = LoadImage("resources/sky1_2k.jpg");
     Texture2D panorama = LoadTextureFromImage(img);
+    SetTextureWrap(panorama, TEXTURE_WRAP_REPEAT);
+    SetTextureFilter(panorama, TEXTURE_FILTER_BILINEAR);
     UnloadImage(img);
 
     // Create skybox cube mesh
@@ -54,11 +56,11 @@ int main()
     // Load skybox shader and set cube map texture
     skybox.materials[0].shader = LoadShader("resources/skybox.vs", "resources/skybox.fs");
     
-    // The shader converts the cubemap to a skybox view
-    skybox.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = cubemap;
-
+    // The shader converts the panorama to a skybox view
+    skybox.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = panorama;
+    
     // Generate a torus mesh
-    Mesh mesh = GenMeshTorus(0.4f, 1.0f, 24, 48);
+    Mesh mesh = GenMeshSphere(0.4f, 96, 96);
     Model torus = LoadModelFromMesh(mesh);
 
     // Change the torus orientation
@@ -71,11 +73,12 @@ int main()
     // Assign the uniforms
     int lightColorLoc  = GetShaderLocation(shader, "lightColor");
     int objectColorLoc = GetShaderLocation(shader, "objectColor");
+    int viewPosLoc     = GetShaderLocation(shader, "viewPos");
 
     int roughnessValueLoc = GetShaderLocation(shader, "roughnessValue");
     int metallicValueLoc  = GetShaderLocation(shader, "metallicValue");
 
-    int envLoc = GetShaderLocation(skybox.materials[0].shader, "environmentMap");
+    int envLoc = GetShaderLocation(shader, "reflectionMap");
 
     // Set static uniform values
     Vector3 lightColor = { 1.0f, 1.0f, 1.0f };
@@ -86,6 +89,9 @@ int main()
     SetShaderValue(shader, lightColorLoc, &lightColor, SHADER_UNIFORM_VEC3);            // Light color
     SetShaderValue(shader, objectColorLoc, &objectColor, SHADER_UNIFORM_VEC3);          // Object color
 
+    float cameraPos[3] = { camera.position.x, camera.position.y, camera.position.z };
+    SetShaderValue(shader, viewPosLoc, cameraPos, SHADER_UNIFORM_VEC3);                 // View position
+
     float roughnessSliderValue = 0.5f;
     float roughnessValue = roughnessSliderValue;
     SetShaderValue(shader, roughnessValueLoc, &roughnessValue, SHADER_UNIFORM_FLOAT);   // Roughness
@@ -94,8 +100,10 @@ int main()
     float metallicValue = metallicSliderValue;
     SetShaderValue(shader, metallicValueLoc, &metallicValue, SHADER_UNIFORM_FLOAT);     // Metallic
 
-    // Passing the environment map to the skybox shader
-    SetShaderValueTexture(skybox.materials[0].shader, envLoc, panorama);
+    // Cubemap binding
+    //SetShaderValueTexture(shader, envLoc, panorama);
+    torus.materials[0].maps[MATERIAL_MAP_EMISSION].texture = panorama;
+    shader.locs[SHADER_LOC_MAP_EMISSION] = envLoc;
 
     // Lock the frames rate
     SetTargetFPS(60);
@@ -132,6 +140,10 @@ int main()
         camera.position.z = radius * cosf(pitch) * cosf(yaw);
 
         camera.target = (Vector3){ 0.0f, 0.0f, 0.0f};
+
+        // Update camera position every frame
+        float cameraPos[3] = { camera.position.x, camera.position.y, camera.position.z };
+        SetShaderValue(shader, viewPosLoc, cameraPos, SHADER_UNIFORM_VEC3);
 
         // Rotate the torus over time
         static float angle = 0.0f;
