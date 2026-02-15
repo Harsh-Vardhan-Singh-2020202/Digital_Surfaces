@@ -54,7 +54,7 @@ void main()
     vec3 F0 = vec3(0.04);
     F0 = mix(F0, objectColor, metallicValue);
 
-    // ==================== Ambient Term (Base) ====================
+    // ==================== Ambient Term (Simple) ====================
     
     float ambientStrength = 0.1;
     vec3 ambient = ambientStrength * lightColor * objectColor;

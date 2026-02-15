@@ -39,7 +39,7 @@ void main()
     // 0.0 = Smooth (Lambert), 1.0 = Very Rough (Bright periphery)
     float roughness = roughnessValue;
 
-    // ==================== Ambient Term (Base) ====================
+    // ==================== Ambient Term (Simple) ====================
     
     float ambientStrength = 0.1;
     vec3 ambient = ambientStrength * lightColor * objectColor;

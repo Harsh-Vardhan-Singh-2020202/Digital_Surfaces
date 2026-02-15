@@ -138,7 +138,7 @@ void main()
     // Get the alpha value (not used in this shader, but could be for transparency)
     float alpha = alphaValue;
     
-    // ==================== Ambient Term (Base) ====================
+    // ==================== Ambient Term (Simple) ====================
     
     float ambientStrength = 0.1;
     vec3 ambient = ambientStrength * lightColor * objectColor;

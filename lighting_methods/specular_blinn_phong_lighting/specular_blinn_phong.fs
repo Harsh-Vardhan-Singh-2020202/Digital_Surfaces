@@ -45,7 +45,7 @@ void main()
     // Exponent: higher mapping (e.g., 512) because Blinn-Phong is broader
     float shininess = pow(2.0, (1.0 - roughnessValue) * 9.0); 
 
-    // ==================== Ambient Term (Base) ====================
+    // ==================== Ambient Term (Simple) ====================
     
     float ambientStrength = 0.1;
     vec3 ambient = ambientStrength * lightColor * objectColor;

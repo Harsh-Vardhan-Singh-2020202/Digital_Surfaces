@@ -43,7 +43,12 @@ int main()
     float radius = 2.5f;
 
     // Load the panoramic environment map
-    Image img = LoadImage("resources/sky1_2k.jpg");
+    Image img = LoadImage("resources/sky2_2k.jpg");
+
+    // Generate mipmaps on CPU before uploading to GPU
+    ImageMipmaps(&img);
+    printf("Generated %d mipmap levels for environment map\n", img.mipmaps);
+
     Texture2D panorama = LoadTextureFromImage(img);
     SetTextureWrap(panorama, TEXTURE_WRAP_REPEAT);
     SetTextureFilter(panorama, TEXTURE_FILTER_BILINEAR);
@@ -60,49 +65,49 @@ int main()
     skybox.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = panorama;
     
     // Generate a torus mesh
-    Mesh mesh = GenMeshSphere(0.4f, 96, 96);
-    Model torus = LoadModelFromMesh(mesh);
+    Mesh mesh1 = GenMeshTorus(0.4f, 1.0f, 24, 48);
+    Model torus = LoadModelFromMesh(mesh1);
+    Mesh mesh2 = GenMeshSphere(0.4f, 48, 48);
+    Model sphere = LoadModelFromMesh(mesh2);
 
     // Change the torus orientation
     torus.transform = MatrixRotateX(DEG2RAD * 90.0f);
+    sphere.transform = MatrixRotateX(DEG2RAD * 90.0f);
 
     // Load and assign the shaders
     Shader shader = LoadShader("lighting_methods/ambient_lighting_ibl/ambient_ibl.vs", "lighting_methods/ambient_lighting_ibl/ambient_ibl.fs");
     torus.materials[0].shader = shader;
+    sphere.materials[0].shader = shader;
 
     // Assign the uniforms
     int lightColorLoc  = GetShaderLocation(shader, "lightColor");
     int objectColorLoc = GetShaderLocation(shader, "objectColor");
     int viewPosLoc     = GetShaderLocation(shader, "viewPos");
 
-    int roughnessValueLoc = GetShaderLocation(shader, "roughnessValue");
-    int metallicValueLoc  = GetShaderLocation(shader, "metallicValue");
+    int reflectivityValueLoc = GetShaderLocation(shader, "reflectivityValue");
 
     int envLoc = GetShaderLocation(shader, "reflectionMap");
 
     // Set static uniform values
     Vector3 lightColor = { 1.0f, 1.0f, 1.0f };
-    Vector3 objectColor = { 0.5f, 0.0f, 0.0f };
+    Vector3 objectColor = { 1.0f, 1.0f, 1.0f };
+    //Vector3 objectColor = { 0.5f, 0.0f, 0.0f };
 
     // Update shader uniform values
 
-    SetShaderValue(shader, lightColorLoc, &lightColor, SHADER_UNIFORM_VEC3);            // Light color
-    SetShaderValue(shader, objectColorLoc, &objectColor, SHADER_UNIFORM_VEC3);          // Object color
+    SetShaderValue(shader, lightColorLoc, &lightColor, SHADER_UNIFORM_VEC3);                // Light color
+    SetShaderValue(shader, objectColorLoc, &objectColor, SHADER_UNIFORM_VEC3);              // Object color
 
     float cameraPos[3] = { camera.position.x, camera.position.y, camera.position.z };
-    SetShaderValue(shader, viewPosLoc, cameraPos, SHADER_UNIFORM_VEC3);                 // View position
+    SetShaderValue(shader, viewPosLoc, cameraPos, SHADER_UNIFORM_VEC3);                     // View position
 
-    float roughnessSliderValue = 0.5f;
-    float roughnessValue = roughnessSliderValue;
-    SetShaderValue(shader, roughnessValueLoc, &roughnessValue, SHADER_UNIFORM_FLOAT);   // Roughness
+    float reflectivitySliderValue = 0.5f;
+    float reflectivityValue = reflectivitySliderValue;
+    SetShaderValue(shader, reflectivityValueLoc, &reflectivityValue, SHADER_UNIFORM_FLOAT); // Reflectivity
 
-    float metallicSliderValue = 0.5f;
-    float metallicValue = metallicSliderValue;
-    SetShaderValue(shader, metallicValueLoc, &metallicValue, SHADER_UNIFORM_FLOAT);     // Metallic
-
-    // Cubemap binding
-    //SetShaderValueTexture(shader, envLoc, panorama);
+    // Bind environment map
     torus.materials[0].maps[MATERIAL_MAP_EMISSION].texture = panorama;
+    sphere.materials[0].maps[MATERIAL_MAP_EMISSION].texture = panorama;
     shader.locs[SHADER_LOC_MAP_EMISSION] = envLoc;
 
     // Lock the frames rate
@@ -153,16 +158,20 @@ int main()
             MatrixRotateX(DEG2RAD * 90.0f)
         );
 
+        // Rotate the sphere over time
+        static float angle2 = 0.0f;
+        angle2 += 0.01f;
+        sphere.transform = MatrixMultiply(
+            MatrixRotateZ(angle2),
+            MatrixRotateX(DEG2RAD * 90.0f)
+        );
+
         // Start rendering a new frame
         BeginDrawing();
 
-        // Update roughness from slider
-        roughnessValue = roughnessSliderValue;
-        SetShaderValue(shader, roughnessValueLoc, &roughnessValue, SHADER_UNIFORM_FLOAT);
-
-        // Update metallic from slider
-        metallicValue = metallicSliderValue;
-        SetShaderValue(shader, metallicValueLoc, &metallicValue, SHADER_UNIFORM_FLOAT);
+        // Update reflectivity from slider
+        reflectivityValue = reflectivitySliderValue;
+        SetShaderValue(shader, reflectivityValueLoc, &reflectivityValue, SHADER_UNIFORM_FLOAT);
 
         // Clear the screen with an off-white background
         ClearBackground((Color){200, 200, 200, 255});
@@ -177,22 +186,19 @@ int main()
         rlEnableBackfaceCulling();
         rlEnableDepthMask();
 
-        // Draw the torus model at given position, scale and color
-        DrawModel(torus, (Vector3){0,0,0}, 1.0f, (Color){objectColor.x * 255, objectColor.y * 255, objectColor.z * 255, 255});
-
+        // Draw the torus/sphere model at given position, scale and color
+        //DrawModel(torus, (Vector3){0,0,0}, 1.0f, (Color){objectColor.x * 255, objectColor.y * 255, objectColor.z * 255, 255});
+        DrawModel(sphere, (Vector3){0,0,0}, 1.0f, (Color){objectColor.x * 255, objectColor.y * 255, objectColor.z * 255, 255});
+        
         // Exit 3D mode and return to 2D rendering
         EndMode3D();
 
         // Add information text
         DrawText("Ambient Lighting - IBL", 10, 10, 20, BLACK);
 
-        // Draw roughness slider
-        DrawText("Roughness", 10, 40, 20, BLACK);
-        GuiSlider((Rectangle){ 130, 40, 200, 20 }, "", TextFormat("%.2f", roughnessSliderValue), &roughnessSliderValue, 0.0f, 1.0f);
-
-        // Draw metallic slider
-        DrawText("Metallic", 10, 70, 20, BLACK);
-        GuiSlider((Rectangle){ 130, 70, 200, 20 }, "", TextFormat("%.2f", metallicSliderValue), &metallicSliderValue, 0.0f, 1.0f);
+        // Draw reflectivity slider
+        DrawText("Reflectivity", 10, 40, 20, BLACK);
+        GuiSlider((Rectangle){ 130, 40, 200, 20 }, "", TextFormat("%.2f", reflectivitySliderValue), &reflectivitySliderValue, 0.0f, 1.0f);
         
         // Finish the frame and present it on screen
         EndDrawing();
@@ -202,6 +208,7 @@ int main()
     UnloadTexture(panorama);
     UnloadModel(skybox);
     UnloadModel(torus);
+    UnloadModel(sphere);
     UnloadShader(shader);
     CloseWindow();
 

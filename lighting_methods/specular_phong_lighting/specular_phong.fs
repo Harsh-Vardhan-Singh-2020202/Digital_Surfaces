@@ -48,7 +48,7 @@ void main()
     // Low roughness (0.0) -> high shininess (256.0)
     float shininess = pow(2.0, (1.0 - roughnessValue) * 8.0); 
 
-    // ==================== Ambient Term (Base) ====================
+    // ==================== Ambient Term (Simple) ====================
     
     float ambientStrength = 0.1;
     vec3 ambient = ambientStrength * lightColor * objectColor;

@@ -27,7 +27,7 @@ void main()
     // Clamping to a tiny epsilon (0.0001) prevents the denominator from ever reaching a 0/0 situation.
     float NdotL = max(rawNdotL, 0.0001);
 
-    // ==================== Ambient Term (Base) ====================
+    // ==================== Ambient Term (Simple) ====================
 
     float ambientStrength = 0.1;
     vec3 ambient = ambientStrength * lightColor * objectColor;

@@ -13,7 +13,7 @@ out vec4 finalColor;
 
 void main()
 {
-    // ==================== Ambient Term (Base) ====================
+    // ==================== Ambient Term (Simple) ====================
 
     float ambientStrength = 0.5;
     vec3 ambient = ambientStrength * lightColor * objectColor;
